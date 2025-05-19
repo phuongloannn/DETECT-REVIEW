@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Phân Tích Đánh Giá Giả</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0c3fc, #8ec5fc);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #fff;
+            max-width: 700px;
+            width: 90%;
+            margin: auto;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            text-align: center;
+            color: #6a0dad;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        textarea, select, button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        button {
+            background: #8e44ad;
+            color: #fff;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #6c3483;
+        }
+
+        .result {
+            margin-top: 30px;
+            font-size: 18px;
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .true {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .fake {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🤖 Phân Tích Đánh Giá Thật Hay Giả</h2>
+        <form id="reviewForm">
+            <label for="review">✍️ Nội dung đánh giá:</label>
+            <textarea id="review" name="review" rows="5" required placeholder="Nhập nội dung đánh giá..."></textarea>
+
+            <label for="rating">⭐ Điểm đánh giá:</label>
+            <select id="rating" name="rating">
+                <option value="5">5 - Rất tốt</option>
+                <option value="4">4 - Tốt</option>
+                <option value="3">3 - Trung bình</option>
+                <option value="2">2 - Kém</option>
+                <option value="1">1 - Rất tệ</option>
+            </select>
+
+            <label for="category">📦 Loại sản phẩm:</label>
+            <select id="category" name="category">
+                <option value="electronics">Điện tử</option>
+                <option value="fashion">Thời trang</option>
+                <option value="food">Đồ ăn</option>
+                <option value="other">Khác</option>
+            </select>
+
+            <button type="submit">🔍 Phân tích đánh giá</button>
+        </form>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        document.getElementById("reviewForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const review = document.getElementById("review").value;
+            const rating = document.getElementById("rating").value;
+            const category = document.getElementById("category").value;
+
+            fetch("/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ review, rating, category })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const resultDiv = document.getElementById("result");
+                if (data.result === "CG") {
+                    resultDiv.className = "result fake";
+                    resultDiv.innerHTML = `❌ Đây là <strong>đánh giá giả</strong><br>Độ tin cậy: ${Math.round(data.confidence * 100)}%`;
+                } else {
+                    resultDiv.className = "result true";
+                    resultDiv.innerHTML = `✅ Đây là <strong>đánh giá thật</strong><br>Độ tin cậy: ${Math.round(data.confidence * 100)}%`;
+                }
+            })
+            .catch(err => {
+                const resultDiv = document.getElementById("result");
+                resultDiv.className = "result fake";
+                resultDiv.innerHTML = "⚠️ Lỗi khi gửi yêu cầu đến máy chủ.";
+            });
+        });
+    </script>
+</body>
+</html>
